@@ -1,10 +1,29 @@
-import Vue from 'vue'
+import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import PrimeVue from 'primevue/config';
+import Aura from '@primevue/themes/aura';
 
-Vue.config.productionTip = false
 
-new Vue({
-  router,
-  render: h => h(App)
-}).$mount('#app')
+createApp(App)
+.use(router)
+.use(PrimeVue, {
+    theme: {
+        preset: Aura,
+        options: {
+            prefix: 'p',
+            darkModeSelector: 'system',
+            cssLayer: {
+                name: 'primevue',
+                order: 'tailwind-base, primevue, tailwind-utilities'
+            }
+        },
+        pt: {
+            slider: {
+                handle: { class: 'bg-primary text-primary-contrast' }
+            }
+        }
+    }
+ })
+.mount('#app')
+
