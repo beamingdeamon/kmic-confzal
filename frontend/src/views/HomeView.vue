@@ -8,10 +8,14 @@
             <div class="search">
               <DatePicker v-model="filter_date" showIcon fluid iconDisplay="input" dateFormat="dd.mm.yy" class="date-picker"/>
               <Select v-model="selected" :options="select_options" optionLabel="name" placeholder="Выберите зал" class="select" @change="selectChanged()"/>
-              <Button label="Найти" type="button" class="button" @click="search()" />
+              <Button label="Найти" type="button" class="button" @click="getBookings()" />
             </div>
             <DataTable :value="bookings" tableStyle="min-width: 50rem" class="table">
-                <Column field="booking_date" header="Дата бронирования"></Column>
+                <Column field="booking_date" header="Дата бронирования">
+                  <template #body="slotProps">
+                      {{ new Date(slotProps.data.booking_date).toLocaleDateString() }}
+                  </template>
+                </Column>
                 <Column field="start_time" header="Время От"></Column>
                 <Column field="end_time" header="Время До"></Column>
                 <Column field="topic" header="Тема встречи"></Column>
@@ -42,6 +46,9 @@ import Select from 'primevue/select';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import axios from 'axios'
+
+const API_URL = process.env.VUE_APP_API_URL
 
 export default {
   name: 'HomeView',
@@ -56,40 +63,32 @@ export default {
               {
               name : "Все",
               value : "all"
-            },{
-              id : 0,
-              name : "Конфзал 1 (3 этаж)",
-              value : 0
-            },{
-              id : 1,
-              name : "Конфзал 2 (4 этаж)",
-              value : 1
             }
           ],
           bookings : [
-            {
-            id: 0,
-            booking_date : "2024-08-20T00:00:00Z",
-            start_time : "12:00",
-            end_time : "13:00",
-            topic : "Обсуждение МСФО 17",
-            company : {
-              name : "Казахмыс"
-            },
-            creater : "Шахжанов Елдар",
-            phone_number : "2100"
-          }, {
-            id: 1,
-            booking_date : "2024-08-20T00:00:00Z",
-            start_time : "12:00",
-            end_time : "13:00",
-            topic : "Обсуждение МСФО 17",
-            company : {
-              name : "Казахмыс"
-            },
-            creater : "Шахжанов Елдар",
-            phone_number : "2100"
-          }
+          //   {
+          //   id: 0,
+          //   booking_date : "2024-08-20T00:00:00Z",
+          //   start_time : "12:00",
+          //   end_time : "13:00",
+          //   topic : "Обсуждение МСФО 17",
+          //   company : {
+          //     name : "Казахмыс"
+          //   },
+          //   creater : "Шахжанов Елдар",
+          //   phone_number : "2100"
+          // }, {
+          //   id: 1,
+          //   booking_date : "2024-08-20T00:00:00Z",
+          //   start_time : "12:00",
+          //   end_time : "13:00",
+          //   topic : "Обсуждение МСФО 17",
+          //   company : {
+          //     name : "Казахмыс"
+          //   },
+          //   creater : "Шахжанов Елдар",
+          //   phone_number : "2100"
+          // }
         ]
         }
     },
@@ -103,15 +102,42 @@ export default {
   },
   methods:{
     selectChanged(){
-      console.log(this.selected)
+      this.getBookings()
+    },
+
+    getBookings(){
+      if(this.selected.value === "all"){
+        axios
+          .get(`${API_URL}/bookings/?date=${this.filter_date}`)
+          .then((response)=>{
+            this.bookings = response.data
+          })
+      }else{
+        axios
+          .get(`${API_URL}/bookings/?date=${this.filter_date}&conference_room_id=${this.selected.id}`)
+          .then((response)=>{
+            this.bookings = response.data
+          })
+      }
+    },
+
+    getRooms(){
+      axios
+        .get(`${API_URL}/conference_rooms/`)
+        .then((response)=>{
+          response.data.map((item)=>{
+            this.select_options.push(item)
+          })
+        })
     }
   },
   mounted(){
       let authed = localStorage.getItem('is_auth')
-      console.log(authed)
       if(authed == null || authed == undefined){
           window.location.replace("/login")
       }
+      this.getRooms()
+      this.getBookings()
   }
 }
 </script>

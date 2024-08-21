@@ -13,6 +13,9 @@
  import Fieldset from 'primevue/fieldset';
  import InputText from 'primevue/inputtext';
  import Button from 'primevue/button';
+import axios from 'axios'
+
+const API_URL = process.env.VUE_APP_API_URL
 
   export default {
     name: 'HomeView',
@@ -28,11 +31,24 @@
     },
     methods:{
         login(){
-            console.log(this.password)
-            if(this.password === "123321"){
-                window.localStorage.setItem("is_auth", true)
-                window.location.replace('/')
-            }
+
+            axios
+                .post(`${API_URL}/login/`,{
+                    master_password : this.password 
+                })
+                .then((response)=>{
+                    if(response.status === 200){
+                        window.localStorage.setItem("is_auth", true)
+                        window.location.replace('/')
+                    }else{
+                        alert('Не правильный пароль')
+                    }
+                }).catch(function (error) {
+                    if (error.response) {
+                        alert('Ошибка')
+                    }
+                });
+
         }
     }
   }
